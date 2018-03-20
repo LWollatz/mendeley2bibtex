@@ -1,6 +1,8 @@
 import errorHandler as err
+import formatBibTeXidentifiers as fmtID
 import re
 from LaTeXstringify import *
+
 
 #standard reg-ex you like your BibTeX keys to look like
 keyPattern = "^[a-z]{2,4}[0-9]{4}[a-z]{0,1}$"
@@ -378,89 +380,14 @@ def formatDay(day):
        will probably produce just what you want."""
     return str(int(day))
 
-def _idgroup(number):
-    first_digit = int(number[0])
-    if first_digit <= 5 or first_digit == 7:
-        return number[0]
-    elif first_digit == 6:
-        return number[:3]
-    elif first_digit == 8:
-        return number[:2]
-    elif int(number[:3]) == 999:
-        return number[:5]
-    elif int(number[:2]) == 99:
-        return number[:4]
-    else:
-        if int(number[1]) <= 4:
-            return number[:2]
-        else:
-            return number[:3]
-
-def _idpublisher(number):
-    if int(number[:2]) < 20:
-        return number[0:2]
-    elif int(number[:3]) < 700:
-        return number[:3]
-    elif int(number[:4]) < 8500:
-        return number[:4]
-    elif int(number[:5]) < 90000:
-        return number[:5]
-    elif int(number[:6]) < 950000:
-        return number[:6]
-    else:
-        return number[:7]
-
-def formatISBN10(ISBNt):
-    #print "ISBN10"
-    IDG = _idgroup(ISBNt)
-    ISBNt = ISBNt[len(IDG):]
-    IDP = _idpublisher(ISBNt)
-    ISBNt = ISBNt[len(IDP):]
-    ISBNout = IDG+"-"+IDP+"-"+ISBNt[:-1]+"-"+ISBNt[-1]
-    return ISBNout
-
-def formatISBN13(ISBNt):
-    #print "ISBN13"
-    if ISBNt[:3] == "978":
-        IDE = "978"
-    elif ISBNt[:3] == "979":
-        IDE = "979"
-    else:
-        print "WARNING strange ISBN13",str(ISBN).replace("-","")
-        IDE = ISBNt[:3]
-    ISBNt = ISBNt[len(IDE):]
-    IDG = _idgroup(ISBNt)
-    ISBNt = ISBNt[len(IDG):]
-    IDP = _idpublisher(ISBNt)
-    ISBNt = ISBNt[len(IDP):]
-    ISBNout = IDE+"-"+IDG+"-"+IDP+"-"+ISBNt[:-1]+"-"+ISBNt[-1]
-    return ISBNout
-   
-def formatISBN(ISBN):
-    """takes an ISBN and returns a string that splits the ISBN correctly"""
-    ISBNt = str(ISBN)
-    ISBNt = ISBNt.replace("ISBN","")
-    ISBNt = ISBNt.replace(":","")
-    ISBNt = ISBNt.replace(" ","")
-    if(ISBNt.find("-") >= 0):
-        return ISBNt
-    ISBNt = ISBNt.replace("-","")
-    if len(ISBNt) == 10:
-        ISBN = formatISBN10(ISBNt)
-    elif len(ISBNt) == 13:
-        ISBN = formatISBN13(ISBNt)
-    else:
-        raise Exception("ISBN %s is of wrong length (%d), expected 10 or 13" % (ISBNt,len(ISBNt)))
-    return str(ISBN)
+def formatISBN(isbn):
+    return fmtID.formatISBN(isbn)
 
 def formatISSN(issn):
     return issn
 
 def formatURL(url):
-    url = url.replace("{\\_}","\\_").replace("{\\&}","\\&").replace("{\\#}","\\#")
-    urls = url.split(" ")
-    url = urls[0]
-    return url
+    return fmtID.formatURL(url)
     
 def formatUrldate(urldate):
     urldate = str(urldate)
@@ -471,18 +398,7 @@ def formatUrldate(urldate):
     return "Accessed on " + urldate
 
 def formatDOI(doi):
-    doi = str(doi)
-    doi = doi.replace("http://","")
-    doi = doi.replace("https://","")
-    doi = doi.replace("dx.doi.org/","")
-    doi = doi.replace("dx.doi.org","")
-    doi = doi.replace("org","")
-    doi = doi.replace("doi:","")
-    doi = doi.replace("doi","")
-    doi = doi.replace(" ","")
-    doi = doi.lstrip(".")
-    doi = doi.lstrip("/")
-    return doi
+    return fmtID.formatDOI(doi)
 
 def formatPMID(pmid):
     return pmid

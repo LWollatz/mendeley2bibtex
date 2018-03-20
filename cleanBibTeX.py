@@ -48,7 +48,13 @@ def writeFile(fout,output,append=False):
     f2.write(output)
     f2.close()
     return None
-    
+
+def _outputEntry(allEntries,thisEntry,doOutput,level,skip,datkey,verbose):
+    if doOutput:
+        allEntries = appendEntry(allEntries,thisEntry)
+    if level != 0 or skip != 0:
+        err.raiseError("Unbalanced reference "+datkey+" level:"+str(level)+" skip:"+str(skip),verbose)
+    return allEntries
 
 def main(fin,fout,accDuplicate=False,append=False,verbose=True):
     global globalkeys, AllErrors, mainVerbose
@@ -65,22 +71,13 @@ def main(fin,fout,accDuplicate=False,append=False,verbose=True):
     allEntries = []
     for line in lines:
         if line[0] != "%": #if this is not a comment
-            if debug == True: #in case that we are in debugging mode, then print the line
-                print line
             if line[0] == "@":
                 #output old entry
-                if doOutput:
-                    allEntries = appendEntry(allEntries,thisEntry)
-                if level != 0 or skip != 0:
-                    err.raiseError("Unbalanced reference "+datkey+" level:"+str(level)+" skip:"+str(skip),verbose)
+                allEntries = _outputEntry(allEntries,thisEntry,doOutput,level,skip,datkey,verbose)
                 #if this line defines a new entry:
                 (thisEntry, dattype, datkey, doOutput) = createNewEntry(line,accDuplicate)
                 level = 0
                 skip = 0
-                if datkey == "testkey":
-                    debug = True
-                else:
-                    debug = False
             elif skip == 1 and level + line.count("{") - line.count("}") == 1:
                 #if this line is the end of the continuation of a previous line
                 #TODO: append to current line and parse it
@@ -91,24 +88,18 @@ def main(fin,fout,accDuplicate=False,append=False,verbose=True):
                 #if this line is a continuation of a previous line
                 #TODO: append to current line
                 pass
-            elif line == "}":
-                #this case doen't seem to occur like ever :-S
-                dattype = ""
-                #output += line
-                print "END OF ENTRY"
-                allEntries = appendEntry(allEntries,thisEntry)
             else:
                 #this line defines a key-value pair within an entry
                 formatBibTeX.globalkeys = globalkeys
                 if thisEntry != None:
                     thisEntry.addline(line)
-                
                 badkey = False
             level += line.count("{") - line.count("}")
-            if debug == True:
-                print skip,level,line
-    if doOutput:
-        allEntries = appendEntry(allEntries,thisEntry)
+            #if debug == True:
+            #    print skip,level,line
+    allEntries = _outputEntry(allEntries,thisEntry,doOutput,level,skip,datkey,verbose)
+    #if doOutput:
+    #    allEntries = appendEntry(allEntries,thisEntry)
 
     allEntries.sort(key=lambda x: x.key,reverse=False)
     for entry in allEntries:
