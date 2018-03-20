@@ -71,71 +71,71 @@ def doFormat(fieldtype,value):
     global globalkeys
     fieldtype = fieldtype.lower()
     if fieldtype == "address":
-        return formatAddress(value)
+        value = formatAddress(value)
     elif fieldtype == "annote":
-        return formatAnnote(value)
+        value = formatAnnote(value)
     elif fieldtype == "author":
-        return formatAuthor(value)
+        value = formatAuthor(value)
     elif fieldtype == "booktitle":
-        return formatBooktitle(value)
+        value = formatBooktitle(value)
     elif fieldtype == "chapter":
-        return formatChapter(value)
+        value = formatChapter(value)
     elif fieldtype == "crossref":
-        return formatCrossref(value,globalkeys)
+        value = formatCrossref(value,globalkeys)
     elif fieldtype == "edition":
-        return formatEdition(value)
+        value = formatEdition(value)
     elif fieldtype == "editor":
-        return formatEditor(value)
+        value = formatEditor(value)
     elif fieldtype == "howpublished":
-        return formatHowpublished(value)
+        value = formatHowpublished(value)
     elif fieldtype == "institution":
-        return formatInstitution(value)
+        value = formatInstitution(value)
     elif fieldtype == "journal":
-        return formatJournal(value)
+        value = formatJournal(value)
     elif fieldtype == "key":
-        return formatKey(value)
+        value = formatKey(value)
     elif fieldtype == "month":
-        return formatMonth(value)
+        value = formatMonth(value)
     elif fieldtype == "note":
-        return formatNote(value)
+        value = formatNote(value)
     elif fieldtype == "number":
-        return formatNumber(value)
+        value = formatNumber(value)
     elif fieldtype == "organization":
-        return formatOrganization(value)
+        value = formatOrganization(value)
     elif fieldtype == "pages":
-        return formatPages(value)
+        value = formatPages(value)
     elif fieldtype == "publisher":
-        return formatPublisher(value)
+        value = formatPublisher(value)
     elif fieldtype == "school":
-        return formatSchool(value)
+        value = formatSchool(value)
     elif fieldtype == "series":
-        return formatSeries(value)
+        value = formatSeries(value)
     elif fieldtype == "title":
-        return formatTitle(value)
+        value = formatTitle(value)
     elif fieldtype == "type":
-        return formatType(value)
+        value = formatType(value)
     elif fieldtype == "volume":
-        return formatVolume(value)
+        value = formatVolume(value)
     elif fieldtype == "year":
-        return formatYear(value)
+        value = formatYear(value)
     
     #print("non-standard field %s",fieldtype)
     if fieldtype == "isbn":
-        return formatISBN(value)
+        value = formatISBN(value)
     elif fieldtype == "url":
-        return formatURL(value)
+        value = formatURL(value)
     elif fieldtype == "doi":
-        return formatDOI(value)
+        value = formatDOI(value)
     elif fieldtype == "pmid":
-        return formatPMID(value)
+        value = formatPMID(value)
     elif fieldtype == "issn":
-        return formatISSN(value)
+        value = formatISSN(value)
     elif fieldtype == "day":
-        return formatDay(value)
+        value = formatDay(value)
     elif fieldtype == "urldate":
-        return formatUrldate(value)
+        value = formatUrldate(value)
     elif fieldtype == "abstract":
-        return value
+        value = value
 
     
     
@@ -195,6 +195,21 @@ def formatCrossref(crossref,keys=None):
             raise KeyError("The crossreference %s was not found in the existing list of keys",crossref)
     return crossref
 
+def _TextToOrdinal(text):
+    defend = True
+    for num in num2ord.keys():
+        if text.endswith(num):
+            text = text[:-1*len(num)]+num2ord[num]
+            defend = False
+            break
+    if defend:
+        if text.endswith("e"):
+            text = text[:-1]
+        if text.endswith("t"):
+            text = text[:-1]
+        text = text+"th"
+    return text
+
 def formatEdition(edition):
     """The edition of a book--for example, ``Second''. This should be an
        ordinal, and should have the first letter capitalized, as shown here;
@@ -216,18 +231,7 @@ def formatEdition(edition):
     except ValueError:
         pass
     #now it's definitely text, just need to format it to ordinal
-    defend = True
-    for num in num2ord.keys():
-        if edition.endswith(num):
-            edition = edition[:-1*len(num)]+num2ord[num]
-            defend = False
-            break
-    if defend:
-        if edition.endswith("e"):
-            edition = edition[:-1]
-        if edition.endswith("t"):
-            edition = edition[:-1]
-        edition = edition+"th"
+    edition = _TextToOrdinal(edition)
     return edition.capitalize()
 
 def formatEditor(editor):
@@ -281,32 +285,11 @@ def formatMonth(month,form="short"):
             month = desMonths[0]
     except ValueError:
         month = month.lower()
-        if "jan" in month:
-            month = desMonths[1]
-        elif "feb" in month:
-            month = desMonths[2]
-        elif "mar" in month:
-            month = desMonths[3]
-        elif "apr" in month:
-            month = desMonths[4]
-        elif "may" in month:
-            month = desMonths[5]
-        elif "jun" in month:
-            month = desMonths[6]
-        elif "jul" in month:
-            month = desMonths[7]
-        elif "aug" in month:
-            month = desMonths[8]
-        elif "sep" in month:
-            month = desMonths[9]
-        elif "oct" in month:
-            month = desMonths[10]
-        elif "nov" in month:
-            month = desMonths[11]
-        elif "dec" in month:
-            month = desMonths[12]
-        else:
-            month = desMonths[0]
+        monthX = desMonths[0]
+        for m in desMonths[1:]:
+            if m.lower() in month:
+                monthX = m
+        month = monthX
     return month
 
 def formatNote(note):
@@ -395,38 +378,66 @@ def formatDay(day):
        will probably produce just what you want."""
     return str(int(day))
 
+def _idgroup(number):
+    first_digit = int(number[0])
+    if first_digit <= 5 or first_digit == 7:
+        return number[0]
+    elif first_digit == 6:
+        return number[:3]
+    elif first_digit == 8:
+        return number[:2]
+    elif int(number[:3]) == 999:
+        return number[:5]
+    elif int(number[:2]) == 99:
+        return number[:4]
+    else:
+        if int(number[1]) <= 4:
+            return number[:2]
+        else:
+            return number[:3]
+
+def _idpublisher(number):
+    if int(number[:2]) < 20:
+        return number[0:2]
+    elif int(number[:3]) < 700:
+        return number[:3]
+    elif int(number[:4]) < 8500:
+        return number[:4]
+    elif int(number[:5]) < 90000:
+        return number[:5]
+    elif int(number[:6]) < 950000:
+        return number[:6]
+    else:
+        return number[:7]
+
+def formatISBN10(ISBNt):
+    #print "ISBN10"
+    IDG = _idgroup(ISBNt)
+    ISBNt = ISBNt[len(IDG):]
+    IDP = _idpublisher(ISBNt)
+    ISBNt = ISBNt[len(IDP):]
+    ISBNout = IDG+"-"+IDP+"-"+ISBNt[:-1]+"-"+ISBNt[-1]
+    return ISBNout
+
+def formatISBN13(ISBNt):
+    #print "ISBN13"
+    if ISBNt[:3] == "978":
+        IDE = "978"
+    elif ISBNt[:3] == "979":
+        IDE = "979"
+    else:
+        print "WARNING strange ISBN13",str(ISBN).replace("-","")
+        IDE = ISBNt[:3]
+    ISBNt = ISBNt[len(IDE):]
+    IDG = _idgroup(ISBNt)
+    ISBNt = ISBNt[len(IDG):]
+    IDP = _idpublisher(ISBNt)
+    ISBNt = ISBNt[len(IDP):]
+    ISBNout = IDE+"-"+IDG+"-"+IDP+"-"+ISBNt[:-1]+"-"+ISBNt[-1]
+    return ISBNout
+   
 def formatISBN(ISBN):
     """takes an ISBN and returns a string that splits the ISBN correctly"""
-    def idgroup(number):
-        if int(number[0]) <= 5 or int(number[0]) == 7:
-            return number[0]
-        elif int(number[0]) == 6:
-            return number[:3]
-        elif int(number[0]) == 8:
-            return number[:2]
-        elif int(number[:3]) == 999:
-            return number[:5]
-        elif int(number[:2]) == 99:
-            return number[:4]
-        else:
-            if int(number[1]) <= 4:
-                return number[:2]
-            else:
-                return number[:3]
-    def idpublisher(number):
-        if int(number[:2]) < 20:
-            return number[0:2]
-        elif int(number[:3]) < 700:
-            return number[:3]
-        elif int(number[:4]) < 8500:
-            return number[:4]
-        elif int(number[:5]) < 90000:
-            return number[:5]
-        elif int(number[:6]) < 950000:
-            return number[:6]
-        else:
-            return number[:7]
-    
     ISBNt = str(ISBN)
     ISBNt = ISBNt.replace("ISBN","")
     ISBNt = ISBNt.replace(":","")
@@ -435,32 +446,12 @@ def formatISBN(ISBN):
         return ISBNt
     ISBNt = ISBNt.replace("-","")
     if len(ISBNt) == 10:
-        #print "ISBN10"
-        IDG = idgroup(ISBNt)
-        ISBNt = ISBNt[len(IDG):]
-        IDP = idpublisher(ISBNt)
-        ISBNt = ISBNt[len(IDP):]
-        ISBNout = IDG+"-"+IDP+"-"+ISBNt[:-1]+"-"+ISBNt[-1]
-        return ISBNout
+        ISBN = formatISBN10(ISBNt)
     elif len(ISBNt) == 13:
-        #print "ISBN13"
-        if ISBNt[:3] == "978":
-            IDE = "978"
-        elif ISBNt[:3] == "979":
-            IDE = "979"
-        else:
-            print "WARNING strange ISBN13",str(ISBN).replace("-","")
-            IDE = ISBNt[:3]
-        ISBNt = ISBNt[len(IDE):]
-        IDG = idgroup(ISBNt)
-        ISBNt = ISBNt[len(IDG):]
-        IDP = idpublisher(ISBNt)
-        ISBNt = ISBNt[len(IDP):]
-        ISBNout = IDE+"-"+IDG+"-"+IDP+"-"+ISBNt[:-1]+"-"+ISBNt[-1]
-        return ISBNout
+        ISBN = formatISBN13(ISBNt)
     else:
         raise Exception("ISBN %s is of wrong length (%d), expected 10 or 13" % (ISBNt,len(ISBNt)))
-        return str(ISBN)
+    return str(ISBN)
 
 def formatISSN(issn):
     return issn
