@@ -9,79 +9,7 @@ from LaTeXstringify import *
 keyPattern = "^[a-z]{2,4}[0-9]{4}[a-z]{0,1}$"
 
 
-globalkeys=[]
 
-# distributer
-
-def doFormat(fieldtype,value):
-    global globalkeys
-    fieldtype = fieldtype.lower()
-    if fieldtype == "address":
-        value = formatAddress(value)
-    elif fieldtype == "annote":
-        value = formatAnnote(value)
-    elif fieldtype == "author":
-        value = formatAuthor(value)
-    elif fieldtype == "booktitle":
-        value = formatBooktitle(value)
-    elif fieldtype == "chapter":
-        value = formatChapter(value)
-    elif fieldtype == "crossref":
-        value = formatCrossref(value,globalkeys)
-    elif fieldtype == "edition":
-        value = formatEdition(value)
-    elif fieldtype == "editor":
-        value = formatEditor(value)
-    elif fieldtype == "howpublished":
-        value = formatHowpublished(value)
-    elif fieldtype == "institution":
-        value = formatInstitution(value)
-    elif fieldtype == "journal":
-        value = formatJournal(value)
-    elif fieldtype == "key":
-        value = formatKey(value)
-    elif fieldtype == "month":
-        value = formatMonth(value)
-    elif fieldtype == "note":
-        value = formatNote(value)
-    elif fieldtype == "number":
-        value = formatNumber(value)
-    elif fieldtype == "organization":
-        value = formatOrganization(value)
-    elif fieldtype == "pages":
-        value = formatPages(value)
-    elif fieldtype == "publisher":
-        value = formatPublisher(value)
-    elif fieldtype == "school":
-        value = formatSchool(value)
-    elif fieldtype == "series":
-        value = formatSeries(value)
-    elif fieldtype == "title":
-        value = formatTitle(value)
-    elif fieldtype == "type":
-        value = formatType(value)
-    elif fieldtype == "volume":
-        value = formatVolume(value)
-    elif fieldtype == "year":
-        value = formatYear(value)
-    elif fieldtype == "isbn":   #NON-STANDARD FIELDS TO FOLLOW
-        value = formatISBN(value)
-    elif fieldtype == "url":
-        value = formatURL(value)
-    elif fieldtype == "doi":
-        value = formatDOI(value)
-    elif fieldtype == "pmid":
-        value = formatPMID(value)
-    elif fieldtype == "issn":
-        value = formatISSN(value)
-    elif fieldtype == "day":
-        value = formatDay(value)
-    elif fieldtype == "urldate":
-        value = formatUrldate(value)
-    elif fieldtype == "abstract":
-        value = value
-    #print "unknown field '%s'" % (fieldtype)
-    return value
 
 #standard fields
 
@@ -193,41 +121,17 @@ def formatKey(key):
         err.raiseWarning("strange key: "+key)
     return key
 
-def getMonthFormat(form="short"):
-    if form == "long":
-        desMonths = ["","January","February","March","April","May", "June", "July", "August", "September", "October", "November", "December"]
-    elif form == "number":
-        desMonths = ["","1","2","3","4","5", "6", "7", "8", "9", "10", "11", "12"]
-    else:
-        desMonths = ["","Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    return desMonths
 
-def formatIntMonth(month,desMonths):
-    month = int(month)
-    if month >= 1 and month <= 12:
-        month = desMonths[month]
-    else:
-        raise Exception("couldn't identify month "+month)
-        month = desMonths[0]
-    return month
-
-def formatStrMonth(month,desMonths):
-    month = month.lower()
-    monthX = desMonths[0]
-    for m in desMonths[1:]:
-        if m.lower() in month:
-            monthX = m
-    return monthX
 
 def formatMonth(month):
     """The month in which the work was published or, for an unpublished work,
        in which it was written. You should use the standard three-letter
        abbreviation, as described in Appendix B.1.3 of the LATEX book. """
-    desMonths = getMonthFormat()
+    desMonths = helper.getMonthFormat()
     try:
-        month = formatIntMonth(month,desMonths)
+        month = helper.formatIntMonth(month,desMonths)
     except ValueError:
-        month = formatStrMonth(month,desMonths)
+        month = helper.formatStrMonth(month,desMonths)
     return month
 
 def formatNote(note):
@@ -341,7 +245,45 @@ def formatPMID(pmid):
 
 
 
+fncmapping = {"address":formatAddress,
+              "annote":formatAnnote,
+              "author": formatAuthor,
+              "booktitle": formatBooktitle,
+              "chapter": formatChapter,
+              "crossref": formatCrossref,
+              "edition": formatEdition,
+              "editor": formatEditor,
+              "howpublished": formatHowpublished,
+              "institution": formatInstitution,
+              "journal": formatJournal,
+              "key": formatKey,
+              "month": formatMonth,
+              "note": formatNote,
+              "number": formatNumber,
+              "organization": formatOrganization,
+              "pages": formatPages,
+              "publisher": formatPublisher,
+              "school": formatSchool,
+              "series": formatSeries,
+              "title": formatTitle,
+              "volume": formatVolume,
+              "year": formatYear,
+              "isbn": formatISBN,
+              "url": formatURL,
+              "doi": formatDOI,
+              "pmid": formatPMID,
+              "issn": formatISSN,
+              "day": formatDay,
+              "urldate": formatUrldate
+              }
+# distributer
 
+def doFormat(fieldtype,value):
+    global fncmapping
+    fieldtype = fieldtype.lower()
+    if fieldtype in fncmapping:
+        value = fncmapping[fieldtype](value)
+    return value
 
 
 
