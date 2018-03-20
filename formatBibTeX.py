@@ -8,34 +8,6 @@ from LaTeXstringify import *
 #standard reg-ex you like your BibTeX keys to look like
 keyPattern = "^[a-z]{2,4}[0-9]{4}[a-z]{0,1}$"
 
-fixedterms = ['.NET','2D','3D']
-fixedterms += ['ACCP','ACR-STR','ALAT','ASTM','ASTM','Amira 3D','Avizo 3D','Azure','ATS','Aquilion ONE / GENESIS Edition']
-fixedterms += ['BMP','Bing','BioImage','BisQue','Bisquik','BrainMaps','BrainMaps']
-fixedterms += ['CAP','COPD','CT','CellProfiler','CAD']
-fixedterms += ['DICOM','DICONDE','Dcm-Ar','Deep Zoom']
-fixedterms += ['EMBC','EMI','EMR','ERS','eScience']
-fixedterms += ['FACTA','FEMA','FITS','Facebook',"Fiji"]
-fixedterms += ['GIF','Google Maps']
-fixedterms += ['HELP','HRCT','HTML5','Hadoop','HL7']
-fixedterms += ['IEEE','ImageJ','ImageJ2','iPad','IoT','IPF','IT']
-fixedterms += ['JPEG','JPG','JSON','JavaScript','JRS']
-fixedterms += ['LinkBench','LB-Index','LungJ']
-fixedterms += ['MR','MRI','Microsoft','MySQL','MCTV','MX16Evo','MEDJACK.2','MS-FSA']
-fixedterms += ['NASA','NEMA','NHS','NoSQL','NIH','NSIP']
-fixedterms += ['OAIS','OLAWSDS','OME','OMERO','OsiriX','OsiriX MD']
-fixedterms += ['PACS','PET','PNG','ParaView','Philips']
-fixedterms += ['RDBMS','RDF','RabbitMQ','RIS','Raspberry Pi']
-fixedterms += ['SPIE','SPECT','SQL','STORM','ScImage','Silverlight','SOMATOM Perspective']
-fixedterms += ['TIF','TIFF']
-fixedterms += ['US'] #check this doesn't cause issues
-fixedterms += ['V3D','V3D','VA','VGStudio MAX','VESSEL12']
-fixedterms += ['WebGL','Windows']
-fixedterms += ['XBM','XML','Yahoo','Zoomify']
-fixedterms.sort(key=lambda x: x.upper(),reverse=False)
-strterms = "['" + "','".join(fixedterms) + "']"
-fixedterms.sort(key=lambda x: len(x),reverse=True)
-
-
 
 globalkeys=[]
 
@@ -92,9 +64,7 @@ def doFormat(fieldtype,value):
         value = formatVolume(value)
     elif fieldtype == "year":
         value = formatYear(value)
-    
-    #print("non-standard field %s",fieldtype)
-    if fieldtype == "isbn":
+    elif fieldtype == "isbn":   #NON-STANDARD FIELDS TO FOLLOW
         value = formatISBN(value)
     elif fieldtype == "url":
         value = formatURL(value)
@@ -110,10 +80,6 @@ def doFormat(fieldtype,value):
         value = formatUrldate(value)
     elif fieldtype == "abstract":
         value = value
-
-    
-    
-    
     #print "unknown field '%s'" % (fieldtype)
     return value
 
@@ -227,30 +193,41 @@ def formatKey(key):
         err.raiseWarning("strange key: "+key)
     return key
 
-def formatMonth(month,form="short"):
-    """The month in which the work was published or, for an unpublished work,
-       in which it was written. You should use the standard three-letter
-       abbreviation, as described in Appendix B.1.3 of the LATEX book. """
+def getMonthFormat(form="short"):
     if form == "long":
         desMonths = ["","January","February","March","April","May", "June", "July", "August", "September", "October", "November", "December"]
     elif form == "number":
         desMonths = ["","1","2","3","4","5", "6", "7", "8", "9", "10", "11", "12"]
     else:
         desMonths = ["","Jan","Feb","Mar","Apr","May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    return desMonths
+
+def formatIntMonth(month,desMonths):
+    month = int(month)
+    if month >= 1 and month <= 12:
+        month = desMonths[month]
+    else:
+        raise Exception("couldn't identify month "+month)
+        month = desMonths[0]
+    return month
+
+def formatStrMonth(month,desMonths):
+    month = month.lower()
+    monthX = desMonths[0]
+    for m in desMonths[1:]:
+        if m.lower() in month:
+            monthX = m
+    return monthX
+
+def formatMonth(month):
+    """The month in which the work was published or, for an unpublished work,
+       in which it was written. You should use the standard three-letter
+       abbreviation, as described in Appendix B.1.3 of the LATEX book. """
+    desMonths = getMonthFormat()
     try:
-        month = int(month)
-        if month >= 1 and month <= 12:
-            month = desMonths[month]
-        else:
-            raise Exception("couldn't identify month "+month)
-            month = desMonths[0]
+        month = formatIntMonth(month,desMonths)
     except ValueError:
-        month = month.lower()
-        monthX = desMonths[0]
-        for m in desMonths[1:]:
-            if m.lower() in month:
-                monthX = m
-        month = monthX
+        month = formatStrMonth(month,desMonths)
     return month
 
 def formatNote(note):

@@ -1,5 +1,33 @@
 #helper functions
 
+fixedterms = ['.NET','2D','3D']
+fixedterms += ['ACCP','ACR-STR','ALAT','ASTM','ASTM','Amira 3D','Avizo 3D','Azure','ATS','Aquilion ONE / GENESIS Edition']
+fixedterms += ['BMP','Bing','BioImage','BisQue','Bisquik','BrainMaps','BrainMaps']
+fixedterms += ['CAP','COPD','CT','CellProfiler','CAD']
+fixedterms += ['DICOM','DICONDE','Dcm-Ar','Deep Zoom']
+fixedterms += ['EMBC','EMI','EMR','ERS','eScience']
+fixedterms += ['FACTA','FEMA','FITS','Facebook',"Fiji"]
+fixedterms += ['GIF','Google Maps']
+fixedterms += ['HELP','HRCT','HTML5','Hadoop','HL7']
+fixedterms += ['IEEE','ImageJ','ImageJ2','iPad','IoT','IPF','IT']
+fixedterms += ['JPEG','JPG','JSON','JavaScript','JRS']
+fixedterms += ['LinkBench','LB-Index','LungJ']
+fixedterms += ['MR','MRI','Microsoft','MySQL','MCTV','MX16Evo','MEDJACK.2','MS-FSA']
+fixedterms += ['NASA','NEMA','NHS','NoSQL','NIH','NSIP']
+fixedterms += ['OAIS','OLAWSDS','OME','OMERO','OsiriX','OsiriX MD']
+fixedterms += ['PACS','PET','PNG','ParaView','Philips']
+fixedterms += ['RDBMS','RDF','RabbitMQ','RIS','Raspberry Pi']
+fixedterms += ['SPIE','SPECT','SQL','STORM','ScImage','Silverlight','SOMATOM Perspective']
+fixedterms += ['TIF','TIFF']
+fixedterms += ['US'] #check this doesn't cause issues
+fixedterms += ['V3D','V3D','VA','VGStudio MAX','VESSEL12']
+fixedterms += ['WebGL','Windows']
+fixedterms += ['XBM','XML','Yahoo','Zoomify']
+fixedterms.sort(key=lambda x: x.upper(),reverse=False)
+strterms = "['" + "','".join(fixedterms) + "']"
+fixedterms.sort(key=lambda x: len(x),reverse=True)
+
+
 _SMALL = {
         '0' : '',
         '1' : 'one',
