@@ -1,10 +1,13 @@
+import errorHandler as err
 from formatBibTeX import *
+from LaTeXstringify import *
 
 def tryFormat(datkey,fieldtype,value):
     try:
         value = doFormat(fieldtype,value)
     except Exception as e:
-        print("ERROR in %s: %s" % (datkey,e))
+        err.raiseError("in %s: %s" % (datkey,e))
+        #value = doFormat(fieldtype,value)
         pass
     return value
 
@@ -70,6 +73,15 @@ entry2field={
 fieldnames = ['address','annote','author','booktitle','chapter','crossref','edition','editor','howpublished','institution','journal','key','month','note','number','organization','pages','publisher','school','series','title','type','volume','year']
 otherFieldnames = ['day','doi','isbn','url','issn','pmid','arxivid','eprint']
 
+def checkmissingfields(entry):
+    if(len(entry.required) < len(entry2field[entry.bibtype]['required'])):
+        missingfields = ""
+        for k in entry2field[entry.bibtype]['required']:
+            if(not k in entry.required):
+                missingfields += " " + k
+        err.raiseError("in %s: entry missing required keys: %s." % (entry.key,missingfields))
+    return None
+
 class bibentry:
     def __init__(self,bibtype,key):
         bibtype = bibtype.lower()
@@ -80,7 +92,7 @@ class bibentry:
         self.ignored  = []
         self.others = []
         self.unknown = []
-        self.fields = {}
+        self.fields = {'bibkey':key,'bibtype':bibtype}
         return None
     
     def __str__(self):
@@ -89,6 +101,8 @@ class bibentry:
         #remove dublicates from field lists and sort them alphabetically
         self.required = list(set(self.required))
         self.required.sort()
+        if(self.bibtype in entry2field):
+            checkmissingfields(self)
         self.optional = list(set(self.optional))
         self.optional.sort()
         self.ignored = list(set(self.ignored))
@@ -111,7 +125,7 @@ class bibentry:
         ans = ans.rstrip(",")
         #add the } to cloase the entry
         ans += "\n}\n"
-        return ans
+        return remUnicode(ans)
 
     def getvalue(self,key):
         if key in self.fields:

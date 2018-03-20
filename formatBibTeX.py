@@ -1,17 +1,16 @@
+import errorHandler as err
+import re
+from LaTeXstringify import *
 
+#standard reg-ex you like your BibTeX keys to look like
+keyPattern = "^[a-z]{2,4}[0-9]{4}[a-z]{0,1}$"
 
-#PUT ALL ABBREVIATIONS IN THIS LIST!
-#Make sure that they are correctly capitalized in Mendeley.
-#Mendeley will put {} around the whole title, but we will remove
-#that so BibTeX can apply the correct capitalization. THus we will
-#put {} around abbreviations which need a specific capitalization!
-#the list below covers some things but probably not everything you need.
 fixedterms = ['.NET','2D','3D']
 fixedterms += ['ACCP','ACR-STR','ALAT','ASTM','ASTM','Amira 3D','Avizo 3D','Azure','ATS','Aquilion ONE / GENESIS Edition']
 fixedterms += ['BMP','Bing','BioImage','BisQue','Bisquik','BrainMaps','BrainMaps']
 fixedterms += ['CAP','COPD','CT','CellProfiler','CAD']
 fixedterms += ['DICOM','DICONDE','Dcm-Ar','Deep Zoom']
-fixedterms += ['EMBC','EMR','ERS','eScience']
+fixedterms += ['EMBC','EMI','EMR','ERS','eScience']
 fixedterms += ['FACTA','FEMA','FITS','Facebook',"Fiji"]
 fixedterms += ['GIF','Google Maps']
 fixedterms += ['HELP','HRCT','HTML5','Hadoop','HL7']
@@ -25,15 +24,13 @@ fixedterms += ['PACS','PET','PNG','ParaView','Philips']
 fixedterms += ['RDBMS','RDF','RabbitMQ','RIS','Raspberry Pi']
 fixedterms += ['SPIE','SPECT','SQL','STORM','ScImage','Silverlight','SOMATOM Perspective']
 fixedterms += ['TIF','TIFF']
-fixedterms += ['US']
-fixedterms += ['V3D','V3D','VA','VGStudio MAX']
+fixedterms += ['US'] #check this doesn't cause issues
+fixedterms += ['V3D','V3D','VA','VGStudio MAX','VESSEL12']
 fixedterms += ['WebGL','Windows']
 fixedterms += ['XBM','XML','Yahoo','Zoomify']
 fixedterms.sort(key=lambda x: x.upper(),reverse=False)
 strterms = "['" + "','".join(fixedterms) + "']"
 fixedterms.sort(key=lambda x: len(x),reverse=True)
-
-globalkeys=[]
 
 _SMALL = {
         '0' : '',
@@ -66,12 +63,11 @@ _SMALL = {
         '90' : 'ninety'
     }
 
+globalkeys=[]
 
 # distributer
 
 def doFormat(fieldtype,value):
-    """takes a fieldtype and a value for that field and
-       calls the relevant formatting function."""
     global globalkeys
     fieldtype = fieldtype.lower()
     if fieldtype == "address":
@@ -161,7 +157,7 @@ def formatAnnote(annote):
     """An annotation. It is not used by the standard bibliography styles,
        but may be used by others that produce an annotated bibliography. """
     #clear from special characters
-    annote = _remSpecialChar(annote)
+    annote = remSpecialChar(annote)
     return annote 
 
 def formatAuthor(author):
@@ -261,9 +257,9 @@ def formatKey(key):
        field should not be confused with the key that appears in the \cite
        command and at the beginning of the database entry. """
     if " " in key:
-        print("errornous key: "+key)
-    elif (len(key) > 8 and key != key.upper()) or (len(key) < 8 and key != key.lower()):
-        print("strange key: "+key)
+        raise ValueError("errornous key: "+key)
+    elif not re.match(keyPattern,key):
+        err.raiseWarning("strange key: "+key)
     return key
 
 def formatMonth(month,form="short"):
@@ -316,7 +312,7 @@ def formatMonth(month,form="short"):
 def formatNote(note):
     """Any additional information that can help the reader. The first word
        should be capitalized. """
-    note = _remSpecialChar(note)
+    note = remSpecialChar(note)
     return note
 
 def formatNumber(number):
@@ -364,7 +360,8 @@ def formatTitle(title):
     title = title.lstrip("\t").rstrip("\t")
     title = title.lstrip(" ").rstrip(" ")
     #title = title.title()
-    return _keepAbbreviations(title)
+    title = _keepAbbreviations(title)
+    return title
 
 def formatType(btype):
     """The type of a technical report--for example, ''Research Note''"""
@@ -483,7 +480,6 @@ def formatUrldate(urldate):
     return "Accessed on " + urldate
 
 def formatDOI(doi):
-    """If you copy the doi, you may make a mistake and copy the full url or so"""
     doi = str(doi)
     doi = doi.replace("http://","")
     doi = doi.replace("https://","")
@@ -492,7 +488,6 @@ def formatDOI(doi):
     doi = doi.replace("org","")
     doi = doi.replace("doi:","")
     doi = doi.replace("doi","")
-    doi = doi.replace("DOI","")
     doi = doi.replace(" ","")
     doi = doi.lstrip(".")
     doi = doi.lstrip("/")
@@ -508,13 +503,6 @@ def formatPMID(pmid):
 
 
 #helper functions
-
-def _remSpecialChar(text):
-    """removes special LaTeX/BibTeX characters from a string"""
-    text = text.replace("{","").replace("}","")
-    text = text.replace("\\","")
-    text = text.replace("&","")
-    return text
 
 def _keepAbbreviations(title):
     global fixedterms
